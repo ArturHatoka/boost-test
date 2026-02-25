@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import ClientApiPreview from '@/widgets/client-api-preview/ui/ClientApiPreview.vue'
-</script>
-
 <template>
   <el-container class="app-shell">
     <el-header class="app-header">
@@ -16,6 +12,10 @@ import ClientApiPreview from '@/widgets/client-api-preview/ui/ClientApiPreview.v
     </el-main>
   </el-container>
 </template>
+
+<script setup lang="ts">
+import ClientApiPreview from '@/widgets/client-api-preview/ui/ClientApiPreview.vue'
+</script>
 
 <style scoped>
 .app-shell {

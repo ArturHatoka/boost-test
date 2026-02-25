@@ -25,3 +25,9 @@ export interface UpdateClientPayload {
   state: string
   status?: ClientStatus
 }
+
+export interface ClientFormModel {
+  name: string
+  state: string
+  status: ClientStatus
+}

@@ -2,30 +2,27 @@ import { reactive, ref } from 'vue'
 import { clientApi } from '@/entities/client/api/clientApi'
 import type {
   Client,
-  ClientStatus,
   ClientListParams,
   CreateClientPayload,
+  UpdateClientPayload,
+  ClientStatus,
 } from '@/entities/client/model/types'
 
 type FilterStatus = ClientStatus | ''
 
 const DEFAULT_LIMIT = 100
 
-export function useClientList() {
+export function useClientCrud() {
   const clients = ref<Client[]>([])
   const isLoading = ref(false)
   const isCreating = ref(false)
+  const isUpdating = ref(false)
+  const deletingClientId = ref<number | null>(null)
   const errorMessage = ref('')
 
   const filters = reactive({
     state: '',
     status: '' as FilterStatus,
-  })
-
-  const createForm = reactive({
-    name: '',
-    state: '',
-    status: 'Active' as ClientStatus,
   })
 
   const statusOptions: ClientStatus[] = ['Active', 'Inactive']
@@ -35,9 +32,7 @@ export function useClientList() {
     errorMessage.value = ''
 
     try {
-      const params: ClientListParams = {
-        limit: DEFAULT_LIMIT,
-      }
+      const params: ClientListParams = { limit: DEFAULT_LIMIT }
 
       if (filters.state.trim() !== '') {
         params.state = filters.state.trim()
@@ -54,39 +49,77 @@ export function useClientList() {
     }
   }
 
-  async function createClient() {
+  async function createClient(payload: CreateClientPayload): Promise<boolean> {
     isCreating.value = true
     errorMessage.value = ''
 
     try {
-      const payload: CreateClientPayload = {
-        name: createForm.name.trim(),
-        state: createForm.state.trim(),
-        status: createForm.status,
-      }
-
       await clientApi.create(payload)
-      createForm.name = ''
-      createForm.state = ''
-      createForm.status = 'Active'
       await loadClients()
+      return true
     } catch (error) {
       errorMessage.value = extractMessage(error, 'Failed to create client.')
+      return false
     } finally {
       isCreating.value = false
     }
+  }
+
+  async function updateClient(id: number, payload: UpdateClientPayload): Promise<boolean> {
+    isUpdating.value = true
+    errorMessage.value = ''
+
+    try {
+      await clientApi.update(id, payload)
+      await loadClients()
+      return true
+    } catch (error) {
+      errorMessage.value = extractMessage(error, 'Failed to update client.')
+      return false
+    } finally {
+      isUpdating.value = false
+    }
+  }
+
+  async function removeClient(id: number): Promise<boolean> {
+    deletingClientId.value = id
+    errorMessage.value = ''
+
+    try {
+      await clientApi.remove(id)
+      await loadClients()
+      return true
+    } catch (error) {
+      errorMessage.value = extractMessage(error, 'Failed to delete client.')
+      return false
+    } finally {
+      deletingClientId.value = null
+    }
+  }
+
+  function setValidationError(message: string) {
+    errorMessage.value = message
+  }
+
+  function clearError() {
+    errorMessage.value = ''
   }
 
   return {
     clients,
     isLoading,
     isCreating,
+    isUpdating,
+    deletingClientId,
     errorMessage,
     filters,
-    createForm,
     statusOptions,
     loadClients,
     createClient,
+    updateClient,
+    removeClient,
+    setValidationError,
+    clearError,
   }
 }
 

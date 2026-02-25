@@ -48,6 +48,13 @@ The HTTP layer is built with axios:
 
 Development proxy forwards `/api/*` from Vite to backend.
 
+Implemented UI in frontend:
+
+- client table/list view
+- create client form
+- edit client form
+- delete client action
+
 ## Backend setup
 
 ```bash
@@ -134,4 +141,4 @@ Edit `dsn/username/password` there for your environment.
 ## Notes
 
 - This repository is being built step-by-step according to `TODO.txt`.
-- At this stage, backend CRUD API for `Client` is implemented.
+- At this stage, backend CRUD API and frontend CRUD UI for `Client` are implemented.
