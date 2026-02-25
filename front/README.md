@@ -34,6 +34,11 @@ Use `.env.example` as reference:
 - `VITE_API_BASE_URL` (default: `/api`)
 - `VITE_DEV_PROXY_TARGET` (default: `http://localhost:8080`)
 
+Backend DB note:
+
+- Backend uses SQLite by default and also supports MySQL/PostgreSQL via env vars.
+- See `back/README.md` for DB switch instructions.
+
 ## Structure
 
 - `src/shared/api/http.ts` - axios instance/interceptors
