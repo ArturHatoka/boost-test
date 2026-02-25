@@ -4,13 +4,14 @@ Test task project: "Client List" application.
 
 ## Stack
 
-- Frontend: Vue 3 (planned)
+- Frontend: Vue 3 + Element Plus + axios (`front/`)
 - Backend: Yii2 Basic (`back/`)
 
 ## Project structure
 
 ```text
 BoostTest/
+  front/       Vue 3 frontend
   back/        Yii2 backend
   TODO.txt     Original task description
 ```
@@ -19,7 +20,33 @@ BoostTest/
 
 - PHP 8.3+ (CLI)
 - Composer 2+
-- Node.js 20+ and npm/yarn (for upcoming frontend part)
+- Node.js 20+ and npm/yarn
+
+## Frontend setup
+
+```bash
+cd front
+npm install
+npm run dev
+```
+
+Frontend will be available at:
+
+```text
+http://localhost:5173
+```
+
+Frontend environment variables (see `front/.env.example`):
+
+- `VITE_API_BASE_URL` (default: `/api`)
+- `VITE_DEV_PROXY_TARGET` (default: `http://localhost:8080`)
+
+The HTTP layer is built with axios:
+
+- `front/src/shared/api/http.ts`
+- `front/src/entities/client/api/clientApi.ts`
+
+Development proxy forwards `/api/*` from Vite to backend.
 
 ## Backend setup
 

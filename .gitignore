@@ -7,9 +7,11 @@ Thumbs.db
 # Env and logs
 .env
 .env.*
+!.env.example
+!**/.env.example
 *.log
 
-# Frontend build artifacts (planned)
+# Frontend build artifacts
 front/node_modules/
 front/dist/
 front/.vite/
@@ -23,4 +25,3 @@ back/web/assets/*
 back/tests/_output/*
 !back/tests/_output/.gitignore
 back/tests/_support/_generated/
-
