@@ -2,14 +2,19 @@
 
 namespace app\modules\api\controllers;
 
-use yii\rest\Controller;
+use app\models\Client;
+use yii\rest\ActiveController;
+use yii\web\Response;
 
-class ClientController extends Controller
+class ClientController extends ActiveController
 {
-    public function actionIndex(): array
+    public $modelClass = Client::class;
+
+    public function behaviors(): array
     {
-        return [
-            'message' => 'Client API is configured',
-        ];
+        $behaviors = parent::behaviors();
+        $behaviors['contentNegotiator']['formats']['text/html'] = Response::FORMAT_JSON;
+
+        return $behaviors;
     }
 }
