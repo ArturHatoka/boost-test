@@ -1,0 +1,26 @@
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Env and logs
+.env
+.env.*
+*.log
+
+# Frontend build artifacts (planned)
+front/node_modules/
+front/dist/
+front/.vite/
+
+# Backend local artifacts
+back/vendor/
+back/runtime/*
+!back/runtime/.gitignore
+back/web/assets/*
+!back/web/assets/.gitignore
+back/tests/_output/*
+!back/tests/_output/.gitignore
+back/tests/_support/_generated/
+
