@@ -1,4 +1,4 @@
-import { reactive, ref } from 'vue'
+import { reactive, ref, type Ref } from 'vue'
 import { clientApi } from '@/entities/client/api/clientApi'
 import type {
   Client,
@@ -18,6 +18,7 @@ export function useClientCrud() {
   const isCreating = ref(false)
   const isUpdating = ref(false)
   const deletingClientId = ref<number | null>(null)
+  const statusUpdatingById = reactive<Record<number, boolean>>({})
   const errorMessage = ref('')
 
   const filters = reactive({
@@ -28,72 +29,74 @@ export function useClientCrud() {
   const statusOptions: ClientStatus[] = ['Active', 'Inactive']
 
   async function loadClients() {
-    isLoading.value = true
-    errorMessage.value = ''
-
-    try {
-      const params: ClientListParams = { limit: DEFAULT_LIMIT }
-
-      if (filters.state.trim() !== '') {
-        params.state = filters.state.trim()
-      }
-      if (filters.status !== '') {
-        params.status = filters.status
-      }
-
-      clients.value = await clientApi.list(params)
-    } catch (error) {
-      errorMessage.value = extractMessage(error, 'Failed to load clients.')
-    } finally {
-      isLoading.value = false
-    }
+    await runWithLoading(isLoading, 'Failed to load clients.', async () => {
+      clients.value = await clientApi.list(buildListParams(filters))
+    })
   }
 
   async function createClient(payload: CreateClientPayload): Promise<boolean> {
-    isCreating.value = true
-    errorMessage.value = ''
-
-    try {
+    return runWithLoading(isCreating, 'Failed to create client.', async () => {
       await clientApi.create(payload)
       await loadClients()
-      return true
-    } catch (error) {
-      errorMessage.value = extractMessage(error, 'Failed to create client.')
-      return false
-    } finally {
-      isCreating.value = false
-    }
+    })
   }
 
   async function updateClient(id: number, payload: UpdateClientPayload): Promise<boolean> {
-    isUpdating.value = true
-    errorMessage.value = ''
-
-    try {
+    return runWithLoading(isUpdating, 'Failed to update client.', async () => {
       await clientApi.update(id, payload)
       await loadClients()
-      return true
-    } catch (error) {
-      errorMessage.value = extractMessage(error, 'Failed to update client.')
-      return false
-    } finally {
-      isUpdating.value = false
-    }
+    })
   }
 
   async function removeClient(id: number): Promise<boolean> {
     deletingClientId.value = id
-    errorMessage.value = ''
 
-    try {
+    return runAction(
+      'Failed to delete client.',
+      async () => {
       await clientApi.remove(id)
       await loadClients()
-      return true
-    } catch (error) {
-      errorMessage.value = extractMessage(error, 'Failed to delete client.')
-      return false
-    } finally {
+      },
+      () => {
       deletingClientId.value = null
+      },
+    )
+  }
+
+  async function changeClientStatus(client: Client, status: ClientStatus): Promise<boolean> {
+    if (client.status === status) {
+      return true
+    }
+
+    statusUpdatingById[client.id] = true
+
+    return runAction(
+      'Failed to update client status.',
+      async () => {
+        const updated = await clientApi.update(client.id, {
+          name: client.name,
+          state: client.state,
+          status,
+        })
+
+        applyClientUpdate(updated)
+      },
+      () => {
+        delete statusUpdatingById[client.id]
+      },
+    )
+  }
+
+  function applyClientUpdate(updated: Client): void {
+    const index = clients.value.findIndex((item) => item.id === updated.id)
+    if (index === -1) {
+      return
+    }
+
+    clients.value[index] = updated
+
+    if (filters.status !== '' && updated.status !== filters.status) {
+      clients.value = clients.value.filter((item) => item.id !== updated.id)
     }
   }
 
@@ -105,12 +108,47 @@ export function useClientCrud() {
     errorMessage.value = ''
   }
 
+  async function runWithLoading(
+    loading: Ref<boolean>,
+    fallback: string,
+    action: () => Promise<void>,
+  ): Promise<boolean> {
+    loading.value = true
+
+    return runAction(
+      fallback,
+      action,
+      () => {
+        loading.value = false
+      },
+    )
+  }
+
+  async function runAction(
+    fallback: string,
+    action: () => Promise<void>,
+    onFinally?: () => void,
+  ): Promise<boolean> {
+    errorMessage.value = ''
+
+    try {
+      await action()
+      return true
+    } catch (error) {
+      errorMessage.value = extractMessage(error, fallback)
+      return false
+    } finally {
+      onFinally?.()
+    }
+  }
+
   return {
     clients,
     isLoading,
     isCreating,
     isUpdating,
     deletingClientId,
+    statusUpdatingById,
     errorMessage,
     filters,
     statusOptions,
@@ -118,9 +156,23 @@ export function useClientCrud() {
     createClient,
     updateClient,
     removeClient,
+    changeClientStatus,
     setValidationError,
     clearError,
   }
+}
+
+function buildListParams(filters: { state: string; status: FilterStatus }): ClientListParams {
+  const params: ClientListParams = { limit: DEFAULT_LIMIT }
+
+  if (filters.state.trim() !== '') {
+    params.state = filters.state.trim()
+  }
+  if (filters.status !== '') {
+    params.status = filters.status
+  }
+
+  return params
 }
 
 function extractMessage(error: unknown, fallback: string): string {

@@ -54,6 +54,7 @@ Implemented UI in frontend:
 - create client form
 - edit client form
 - delete client action
+- inline status switch (Active/Inactive) without page reload
 
 ## Backend setup
 

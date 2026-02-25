@@ -60,8 +60,10 @@
         :clients="clients"
         :is-loading="isLoading"
         :deleting-client-id="deletingClientId"
+        :status-updating-by-id="statusUpdatingById"
         @edit="handleOpenEditDialog"
         @delete="handleDeleteClient"
+        @status-change="handleStatusChange"
       />
     </el-card>
   </el-space>
@@ -108,7 +110,12 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import type { Client, CreateClientPayload, UpdateClientPayload } from '@/entities/client/model/types'
+import type {
+  Client,
+  ClientFormModel,
+  ClientStatus,
+  UpdateClientPayload,
+} from '@/entities/client/model/types'
 import { API_BASE_URL } from '@/shared/api/http'
 import { useClientCrud } from '@/features/client-list/model/useClientCrud'
 import { isValidClientForm, useClientDialogs } from '@/features/client-list/model/useClientDialogs'
@@ -121,12 +128,14 @@ const {
   isCreating,
   isUpdating,
   deletingClientId,
+  statusUpdatingById,
   errorMessage,
   filters,
   statusOptions,
   loadClients,
   createClient,
   updateClient,
+  changeClientStatus,
   removeClient,
   setValidationError,
   clearError,
@@ -170,13 +179,7 @@ async function handleCreateClient() {
     return
   }
 
-  const payload: CreateClientPayload = {
-    name: createForm.name.trim(),
-    state: createForm.state.trim(),
-    status: createForm.status,
-  }
-
-  const success = await createClient(payload)
+  const success = await createClient(toClientPayload(createForm))
   if (success) {
     closeCreateDialog()
     ElMessage.success('Client created.')
@@ -194,13 +197,7 @@ async function handleUpdateClient() {
     return
   }
 
-  const payload: UpdateClientPayload = {
-    name: editForm.name.trim(),
-    state: editForm.state.trim(),
-    status: editForm.status,
-  }
-
-  const success = await updateClient(editingClientId.value, payload)
+  const success = await updateClient(editingClientId.value, toClientPayload(editForm))
   if (success) {
     closeEditDialog()
     ElMessage.success('Client updated.')
@@ -229,8 +226,23 @@ async function handleDeleteClient(client: Client) {
   }
 }
 
+async function handleStatusChange(payload: { client: Client; status: ClientStatus }) {
+  const success = await changeClientStatus(payload.client, payload.status)
+  if (success) {
+    ElMessage.success('Status updated.')
+  }
+}
+
 function isDialogCancel(error: unknown): boolean {
   return error === 'cancel' || error === 'close'
+}
+
+function toClientPayload(form: ClientFormModel): UpdateClientPayload {
+  return {
+    name: form.name.trim(),
+    state: form.state.trim(),
+    status: form.status,
+  }
 }
 </script>
 

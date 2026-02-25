@@ -6,6 +6,7 @@ Vue 3 application (Composition API) with:
 - `Element Plus` UI components
 - Vite dev proxy to backend API
 - Client table with create/edit/delete forms
+- Inline status switch (Active/Inactive) without page reload
 
 ## Run
 

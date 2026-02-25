@@ -12,11 +12,6 @@ export const clientApi = {
     return data
   },
 
-  async getById(id: number): Promise<Client> {
-    const { data } = await http.get<Client>(`/client/${id}`)
-    return data
-  },
-
   async create(payload: CreateClientPayload): Promise<Client> {
     const { data } = await http.post<Client>('/client', payload)
     return data
