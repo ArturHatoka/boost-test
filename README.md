@@ -53,6 +53,18 @@ Implemented endpoints:
 - `PUT /api/client/{id}`
 - `DELETE /api/client/{id}`
 
+## Backend architecture
+
+Client API is decomposed into layers:
+
+- `back/modules/api/controllers` - HTTP layer (`ApiController`, `ClientController`)
+- `back/modules/api/requests` - input models and validation rules
+- `back/modules/api/services` - application/business orchestration
+- `back/modules/api/repositories` - persistence contracts and ActiveRecord implementation
+- `back/modules/api/dto` - transport objects between layers
+- `back/modules/api/transformers` - response shaping
+- `back/modules/api/exceptions` - domain-level exceptions
+
 Request payload for create/update:
 
 ```json
